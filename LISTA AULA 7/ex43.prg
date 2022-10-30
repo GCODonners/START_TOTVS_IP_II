@@ -1,3 +1,4 @@
+
 function main()
 
     local aBaralho := {}
@@ -45,12 +46,12 @@ function main()
 
     next nCount
 
-    WAIT "Pressione algo para o proximo passo... "
+    WAIT "Memorize a carta desejada, e pressione algo para continuar "
     ?
 
 //////////////////////////////////////////////////////
 
-    reorderDeck(@a7X3, aMagica)
+    reorderDeck(@a7X3)
 
 
 return nil
@@ -158,69 +159,23 @@ static function pickColumn(nCol)
 
 return nil
 
-///////// FUNCAO PARA ESCOLHA DE CARTA
-static function pickCard(a7X3, cCarta)
-
-    local aCarta := {"A", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"}
-    local aNaipe := {CHR(3), CHR(4), CHR(5), CHR(6)}
-    local nNaipe := 1
-    local nCheck := 0
-    local lRun := .T.
-
-    while lRun
-
-        ACCEPT "Digite o numero/letra da carta desejada: " to cCarta
-        cCarta := UPPER(cCarta)
-
-        nCheck := ASCAN(aCarta, cCarta)
-
-        if nCheck = 0 .or. EMPTY(cCarta)
-
-            ? "Carta invalida"
-            loop
-        
-        ENDIF
-
-        INPUT "Digite o naipe (1 para Copas, 2 para Ouros, 3 para Paus, 4 para Espadas): " to nNaipe
-
-        if (nNaipe <> 1 .and. nNaipe <> 2 .and. nNaipe <> 3 .and. nNaipe <> 4) .or. EMPTY(nNaipe)
-
-            ? "Naipe invalido"
-            loop
-
-        endif
-
-        lRun := .F.
-
-    enddo
-
-    cCarta += aNaipe[nNaipe]
-
-return nil
-
-///////// F) SOLICITA COLUNA E CARTA PARA PREENCHER VETOR DA C
-static function reorderDeck(a7X3, aMagica)
+///////// F) SOLICITA COLUNA
+static function reorderDeck(a7X3)
 
     local nCount := 0
-    local nC := 1
-    local nI := 1
     local nCol := 0
     local nRun := 0
     local cCarta := ""
-    local aVet := {}
-
-    pickCard(a7X3, @cCarta)
-
+    local aBaralho := {}
+    local aMagica := {}
 
     while nRun < 3
 
         CLEAR SCREEN
 
-        ASIZE(aVet, 0)
-
         if nRun > 0
 
-            ASIZE(a7X3, 0)
+            aMagica := buildMagic(aBaralho)
             a7X3 := build7x3(aMagica)
 
         endif
@@ -233,40 +188,59 @@ static function reorderDeck(a7X3, aMagica)
 
         pickColumn(@nCol)
 
-        nC := 1
+        aBaralho := doTrick(a7X3, nCol)
 
-        for nCount := 1 to 3
-
-            if nC <> nCol
-
-                for nI := 1 to 7
-
-                    Aadd(aVet, a7X3[nI, nC])
-
-                NEXT
-
-            else
-                
-                for nI := 1 to 7
-
-                    Aadd(aVet, a7X3[nI, nCol])
-
-                NEXT
-
-            endif
-
-            nC++    
-                
-        next nCount
+        WAIT "Aperte para continuar"
 
         nRun++
-
-        ? hb_valtoexp(aVet)
-        WAIT "Pressione algo para continuar..."
 
     enddo
 
 
-    ? "G) 11o Elemento do vetor 21: ", aVet[11]
+    ? "G) Carta escolhida: ", aBaralho[11]
 
 return nil
+
+
+///////// REORDENA
+static function doTrick(a7X3, nCol)
+
+    local nI := 1
+    local nCount := 0
+    local aCartas := ARRAY(21)
+
+    if nCol == 1
+
+        for nCount := 1 to 7
+
+            aCartas[nCount] := a7X3[nCount][2]
+            aCartas[nCount+7] := a7X3[nCount][1]
+            aCartas[nCount+14] := a7X3[nCount][3]
+
+        next
+
+    elseif nCol == 3
+    
+        for nCount := 1 to 7
+
+            aCartas[nCount] := a7X3[nCount][1]
+            aCartas[nCount+7] := a7X3[nCount][3]
+            aCartas[nCount+14] := a7X3[nCount][2]
+
+        next
+
+    else
+        
+        for nCount := 1 to 7
+
+            aCartas[nCount] := a7X3[nCount][2]
+            aCartas[nCount+7] := a7X3[nCount][1]
+            aCartas[nCount+14] := a7X3[nCount][3]
+
+        next
+
+    endif
+
+    ? hb_valtoexp(aCartas)
+
+return aCartas
